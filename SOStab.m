@@ -485,7 +485,7 @@ classdef SOStab < handle
             %title('Region of attraction over X = [- 1, 1]')
             legend('Location','southwest')
             
-            title(['ROA(',str1,',',str2,')'])
+            title(strjoin(['ROA(',str1,',',str2,')']))
             xlabel(str1);
             ylabel(str2);
         end

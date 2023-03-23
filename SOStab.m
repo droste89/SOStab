@@ -58,12 +58,15 @@ classdef SOStab < handle
             obj.x = sdpvar(obj.dimension,1);
             invD = zeros(obj.dimension,1);
             for j=1:size(parse_matrix,1) % equilibrium, sine, cosine
-                obj.angle_eq(j) = parse_matrix(j,1);
+                obj.angle_eq(j, 1) = parse_matrix(j,1);
                 obj.angle_ind(j, :) = parse_matrix(j, 2:3);
                 obj.x_eq(parse_matrix(j, 2)) = 0;
                 obj.x_eq(parse_matrix(j, 3)) = 0;
                 if any(obj.delta_x(parse_matrix(j, 2:3))>1)
                     error("Sin/Cosine range can't be superior to 1")
+                end
+                if parse_matrix(j,2) == parse_matrix(j,3)
+                    error("Sin and cosine can't have the same indice")
                 end
             end
             for k=1:obj.dimension
@@ -74,10 +77,16 @@ classdef SOStab < handle
 
         end
         
-        function [sol, vc, wc] = SoS_out(obj, A, epsilon, d, T)
+        function [sol, vc, wc] = SoS_out(obj, d, T, epsilon, A)
             %SOS_OUT solves the outer approximation problem
-            
+
             n = obj.dimension;
+            if isempty(obj.dynamics)
+                error("You forgot to input the dynamics")
+            end
+            if nargin < 5
+                A = eye(n)
+            end
             s = sdpvar(1,1); % s= t / T;
             z = sdpvar(n,1);
             obj.d = d;
@@ -171,13 +180,22 @@ classdef SOStab < handle
 					% z(obj.angle_ind(j,1)) is sin(theta - theta_eq), z(obj.angle_ind(j,2)) is 0.5-0.5cos(theta - theta_eq)
 					% and sin(theta) = sin(theta-theta_eq)cos(theta_eq) + sin(theta_eq)(1-2(0.5-0.5cos(theta-theta_eq)))
 					% similar for cos(theta)
+                    costhetaeq = cos(obj.angle_eq(j));
+                    sinthetaeq = sin(obj.angle_eq(j));
+                    
 					f = replace(f, [obj.x(obj.angle_ind(j,1)); obj.x(obj.angle_ind(j,2))], ...
-						[ sin(obj.angle_eq(j)) * (1 - 2 * z(obj.angle_ind(j,2))) + cos(obj.angle_eq(j)) * z(obj.angle_ind(j,1)); ...
-						cos(obj.angle_eq(j)) * (1 - 2 * z(obj.angle_ind(j,2))) - sin(obj.angle_eq(j)) * z(obj.angle_ind(j,1))]);
+						[ sinthetaeq * (1 - 2 * z(obj.angle_ind(j,2))) + costhetaeq * z(obj.angle_ind(j,1)); ...
+						costhetaeq * (1 - 2 * z(obj.angle_ind(j,2))) - sinthetaeq * z(obj.angle_ind(j,1))]);
+                    % sin(theta-theta_eq) = sin(theta)cos(theta_eq)-cos(theta)sin(theta_eq)
+                    % d(sin(theta-theta_eq)) = d(sin(theta))cos(theta_eq)-d(cos(theta))sin(theta_eq)
+                    % 
+                    % -0.5d(cos(theta-theta_eq)) = -0.5(cos(theta)cos(theta_eq) + sin(theta)sin(theta_eq)))
+                    [f(obj.angle_ind(j,1)), f(obj.angle_ind(j,2))] = deal(costhetaeq*f(obj.angle_ind(j,1))-sinthetaeq*f(obj.angle_ind(j,2)),...
+                    -0.5*(costhetaeq*f(obj.angle_ind(j,2))+sinthetaeq*f(obj.angle_ind(j,1))));
 				end
 				f = (obj.D) * replace(f, [obj.x], [(obj.invD)*z+obj.x_eq]); % f defined thanks to variable change, note that variables corresponding to angles are already replaced
             end
-        
+
             con = [con, sos(-(max(1, 1/T) * jacobian(v,s) + max(1,T) * jacobian(v,z) * f) - hs - l * q2)];
             var = [var; qc2];
             
@@ -199,8 +217,15 @@ classdef SOStab < handle
             obj.vcoef_outer = vc;
         end
 
-        function [sol, vc, wc] = SoS_in(obj, A, epsilon, d, T)
+        function [sol, vc, wc] = SoS_in(obj, d, T, epsilon, A)
             %SOS_IN Solves the inner approximation problem
+            n = obj.dimension;
+            if isempty(obj.dynamics)
+                error("You forgot to input the dynamics")
+            end
+            if nargin < 5
+                A = eye(n)
+            end
             
             n = obj.dimension;
             s = sdpvar(1,1); % s= t / T;
@@ -311,9 +336,18 @@ classdef SOStab < handle
 					% z(obj.angle_ind(j,1)) is sin(theta - theta_eq), z(obj.angle_ind(j,2)) is 0.5-0.5cos(theta - theta_eq)
 					% and sin(theta) = sin(theta-theta_eq)cos(theta_eq) + sin(theta_eq)(1-2(0.5-0.5cos(theta-theta_eq)))
 					% similar for cos(theta)
+                    costhetaeq = cos(obj.angle_eq(j));
+                    sinthetaeq = sin(obj.angle_eq(j));
+                    
 					f = replace(f, [obj.x(obj.angle_ind(j,1)); obj.x(obj.angle_ind(j,2))], ...
-						[ sin(obj.angle_eq(j)) * (1 - 2 * z(obj.angle_ind(j,2))) + cos(obj.angle_eq(j)) * z(obj.angle_ind(j,1)); ...
-						cos(obj.angle_eq(j)) * (1 - 2 * z(obj.angle_ind(j,2))) - sin(obj.angle_eq(j)) * z(obj.angle_ind(j,1))]);
+						[ sinthetaeq * (1 - 2 * z(obj.angle_ind(j,2))) + costhetaeq * z(obj.angle_ind(j,1)); ...
+						costhetaeq * (1 - 2 * z(obj.angle_ind(j,2))) - sinthetaeq * z(obj.angle_ind(j,1))]);
+                    % sin(theta-theta_eq) = sin(theta)cos(theta_eq)-cos(theta)sin(theta_eq)
+                    % d(sin(theta-theta_eq)) = d(sin(theta))cos(theta_eq)-d(cos(theta))sin(theta_eq)
+                    % 
+                    % -0.5d(cos(theta-theta_eq)) = -0.5(cos(theta)cos(theta_eq) + sin(theta)sin(theta_eq)))
+                    [f(obj.angle_ind(j,1)), f(obj.angle_ind(j,2))] = deal(costhetaeq*f(obj.angle_ind(j,1))-sinthetaeq*f(obj.angle_ind(j,2)),...
+                    -0.5*(costhetaeq*f(obj.angle_ind(j,2))+sinthetaeq*f(obj.angle_ind(j,1))));
 				end
 				f = (obj.D) * replace(f, [obj.x], [(obj.invD)*z+obj.x_eq]); % f defined thanks to variable change, note that variables corresponding to angles are already replaced
             end

@@ -85,7 +85,7 @@ classdef SOStab < handle
                 error("You forgot to input the dynamics")
             end
             if nargin < 5
-                A = eye(n)
+                A = eye(n);
             end
             s = sdpvar(1,1); % s= t / T;
             z = sdpvar(n,1);
@@ -110,15 +110,15 @@ classdef SOStab < handle
             y = ones(size(zz));
             fz = sdisplay(zz);
             for k=1:size(zz,1)
-                f = fz{k,1};
+                integrand = fz{k,1};
                 iszero = false;
-                if contains(f, ')*') || f(end)==')' % search for a monomial of degree 1
-                    y(k) =0;
+                if contains(integrand, ')*') || integrand(end)==')' % search for a monomial of degree 1
+                    y(k) = 0;
                     continue
                 end
                 for j=3:2:d
-                    if contains(f, ['^' num2str(j)]) % search for odd degree monomials
-                        y(k) =0;
+                    if contains(integrand, ['^' num2str(j)]) % search for odd degree monomials
+                        y(k) = 0;
                         iszero = true;
                         continue
                     end
@@ -129,14 +129,14 @@ classdef SOStab < handle
                 for j=1:size(z,1) % integration for other situations
                     iscons = true;
                     for deg = 2:2:d
-                       if contains(f, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
-                           y(k)= y(k)*2/(deg+1);
+                       if contains(integrand, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
+                           y(k) = y(k)*2/(deg+1);
                            iscons = false;
                            continue
                        end
                     end
                     if iscons % integration of constant over [-1,1]
-                        y(k)= y(k)*2;
+                        y(k) = y(k)*2;
                     end
                 end
                         
@@ -224,7 +224,7 @@ classdef SOStab < handle
                 error("You forgot to input the dynamics")
             end
             if nargin < 5
-                A = eye(n)
+                A = eye(n);
             end
             
             n = obj.dimension;
@@ -251,15 +251,15 @@ classdef SOStab < handle
             y = ones(size(zz));
             fz = sdisplay(zz);
             for k=1:size(zz,1)
-                f = fz{k,1};
+                integrand = fz{k,1};
                 iszero = false;
-                if contains(f, ')*') || f(end)==')' % search for a monomial of degree 1
-                    y(k) =0;
+                if contains(integrand, ')*') || integrand(end)==')' % search for a monomial of degree 1
+                    y(k) = 0;
                     continue
                 end
                 for j=3:2:d
-                    if contains(f, ['^' num2str(j)]) % search for odd degree monomials
-                        y(k) =0;
+                    if contains(integrand, ['^' num2str(j)]) % search for odd degree monomials
+                        y(k) = 0;
                         iszero = true;
                         continue
                     end
@@ -270,14 +270,14 @@ classdef SOStab < handle
                 for j=1:size(z,1) % integration for other situations
                     iscons = true;
                     for deg = 2:2:d
-                       if contains(f, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
-                           y(k)= y(k)*2/(deg+1);
+                       if contains(integ, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
+                           y(k) = y(k)*2/(deg+1);
                            iscons = false;
                            continue
                        end
                     end
                     if iscons % integration of constant over [-1,1]
-                        y(k)= y(k)*2;
+                        y(k) = y(k)*2;
                     end
                 end
                         

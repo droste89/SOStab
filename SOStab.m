@@ -515,7 +515,7 @@ classdef SOStab < handle
             %axis equal
             legend('Location','southwest')
             
-            title(strjoin(['ROA(',str1,',',str2,')']))
+            title(strjoin({'ROA(',str1,',',str2,')'}))
             xlabel(str1);
             ylabel(str2);
         end

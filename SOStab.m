@@ -713,7 +713,7 @@ classdef SOStab < handle
             view([37.5 30]);
             hold off
 
-            title(strjoin(['v(',tau,','str1,',',str2,')']))
+            title(strjoin({'v(',tau,',',str1,',',str2,')'}))
             xlabel(str1);
             ylabel(str2);
         end

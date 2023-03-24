@@ -492,31 +492,27 @@ classdef SOStab < handle
             Z(:,mesh_size(2)) = border_value*ones(mesh_size(1),1);
             figure(1)
             hold on
-            contour(plot_x, plot_y, Z, [1 1], col,'linewidth', 2, 'DisplayName', [app_str ' RoA approximation: T=' num2str(obj.T) ', d=' num2str(obj.d)]);
-            if angle1
-                coef1 = 1;
-                xeq = obj.angle_eq(ind1(3));
-            else
-                coef1 = obj.A(ind1,ind1);
-                xeq = obj.x_eq(ind1);
-            end
-            if angle2
-                coef2 = 1;
-                yeq = obj.angle_eq(ind2(3));
-            else
-                coef2 = obj.A(ind2,ind2);
-                yeq = obj.x_eq(ind2);
-            end
-            parametric_angle = linspace(0,2*pi,100);
             if plot_target
+	    	parametric_angle = linspace(0,2*pi,100);
+		    if angle1
+			coef1 = 1;
+			xeq = obj.angle_eq(ind1(3));
+		    else
+			coef1 = obj.A(ind1,ind1);
+			xeq = obj.x_eq(ind1);
+		    end
+		    if angle2
+			coef2 = 1;
+			yeq = obj.angle_eq(ind2(3));
+		    else
+			coef2 = obj.A(ind2,ind2);
+			yeq = obj.x_eq(ind2);
+		    end
                 plot(xeq + obj.epsilon/coef1 * cos(parametric_angle), yeq + obj.epsilon/coef2 * sin(parametric_angle), '-k','linewidth', 2, 'DisplayName','Target set');
             end
-            %ZZ = (coef1*plot_x).^2+(coef2*plot_y).^2;
-            %contour(plot_x, plot_y, ZZ, [obj.epsilon obj.epsilon], '-k','linewidth', 2);
-            % rectangle('position',[-1+ rho_eq -pi+theta_eq 2 2* pi]);
+            contour(plot_x, plot_y, Z, [1 1], col,'linewidth', 2, 'DisplayName', [app_str ' RoA approximation: T=' num2str(obj.T) ', d=' num2str(obj.d)]);
             hold off
             %axis equal
-            %title('Region of attraction over X = [- 1, 1]')
             legend('Location','southwest')
             
             title(strjoin(['ROA(',str1,',',str2,')']))

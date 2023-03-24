@@ -270,7 +270,7 @@ classdef SOStab < handle
                 for j=1:size(z,1) % integration for other situations
                     iscons = true;
                     for deg = 2:2:d
-                       if contains(integ, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
+                       if contains(integrand, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
                            y(k) = y(k)*2/(deg+1);
                            iscons = false;
                            continue

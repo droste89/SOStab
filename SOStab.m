@@ -7,28 +7,30 @@ classdef SOStab < handle
     %   x(t) \in M, x(T) \in K}
     
     properties
-        dimension; % dimension of the problem
-        x_eq; % equilibrium state
-        delta_x; % distance from the equilibirum to the max attainable value
-        angle_eq=[]; % equilibrium angle (empty if no variables are angle)
-        angle_ind; % indices of each angle
         x; % sdpvar for solving the problem
         t = sdpvar(1,1); % time variable
         dynamics; % dynamic of the system : \dot(x) = p(x)
-        D; % matrix of variable change : x = D(x - x_eq)
-        invD; % inverse of the previous matrix
-        d; % degree of polynomials, can change
         vcoef_inner; % coefficients of the solution v for the last calculated optimization
         wcoef_inner; % coefficients of the solution w for the last calculated optimization
         vcoef_outer; % coefficients of the solution v for the last calculated optimization
         wcoef_outer; % coefficients of the solution w for the last calculated optimization
         solution; % volume of the current ROA calculation
-        A; % matrix s. t. the target set is defined by A(x-x_eq) < epsilon
-        epsilon; % radius of the target set
-        T; % Time horizon
         solver = 'mosek'; % can be changed manually
         verbose = 2; % can be changed manually
     end
+	properties (SetAccess = private)
+        dimension; % dimension of the problem
+        x_eq; % equilibrium state
+        delta_x; % distance from the equilibrium to the max attainable value
+        angle_eq=[]; % equilibrium angle (empty if no variables are angle)
+        angle_ind; % indices of each angle
+        d; % degree of polynomials, can change
+        A; % matrix s. t. the target set is defined by A(x-x_eq) < epsilon
+        epsilon; % radius of the target set
+        T; % Time horizon
+        D; % matrix of variable change : x' = D(x - x_eq)
+        invD; % inverse of the previous matrix
+	end
     
     methods
         function obj = SOStab(x_eq, delta_x, parse_matrix)
@@ -514,8 +516,7 @@ classdef SOStab < handle
             hold off
             %axis equal
             legend('Location','southwest')
-            
-            title(strjoin({'ROA(',str1,',',str2,')'}))
+            title(strjoin(['ROA(', str1, ', ', str2, ")"], ''))
             xlabel(str1);
             ylabel(str2);
         end
@@ -613,7 +614,7 @@ classdef SOStab < handle
             view([37.5 30]);
             hold off
 
-            title(strjoin(['w(',str1,',',str2,')']))
+            title(strjoin(['w(', str1, ', ', str2, ")"], ''))
             xlabel(str1);
             ylabel(str2);
         end
@@ -713,7 +714,7 @@ classdef SOStab < handle
             view([37.5 30]);
             hold off
 
-            title(strjoin({'v(',tau,',',str1,',',str2,')'}))
+            title(strjoin(['v(', tau, ', ', str1, ', ', str2, ")"], ''))
             xlabel(str1);
             ylabel(str2);
         end

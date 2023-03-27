@@ -33,7 +33,7 @@ classdef SOStab < handle
 	end
     
     methods
-        function obj = SOStab(x_eq, delta_x, parse_matrix)
+        function obj = SOStab(x_eq, delta_x, angular_indices)
             %SOSTAB Initialize an object for calculating ROA approximations
             %
             %
@@ -43,32 +43,35 @@ classdef SOStab < handle
             %   dimension of the problem
             %   delta_x: range around the equilibrium defining the admissible set,
             %   must have the same size as x_eq
-            %   parse_matrix (optionnal): if the problem involves angles, this 
-            %   matrix should contain rows defining each angles and relating them
-            %   to the corresponding variables in the first two vectors:
-            %   each row should be of the type [theta_eq, ind1, ind2] where ind1
+            %   angular_indices (optionnal): if the problem involves angles, this 
+            %   matrix should contain rows defining indices corresponding to angles:
+            %   each row should be of the type [ind1, ind2] where ind1
             %   (resp. ind2) indicates the place of the variables corresponding
-            %   to sin(theta) (resp. cos(theta)).
+            %   to sin (resp. cos) of the angle variable.
             %%%%%
 
             if nargin < 3
-                parse_matrix = [];
+                angular_indices = [];
             end
             obj.dimension = max(size(x_eq));
             obj.x_eq = reshape(x_eq, obj.dimension, 1);
             obj.delta_x = reshape(delta_x, obj.dimension, 1);
             obj.x = sdpvar(obj.dimension,1);
             invD = zeros(obj.dimension,1);
-            for j=1:size(parse_matrix,1) % equilibrium, sine, cosine
-                obj.angle_eq(j, 1) = parse_matrix(j,1);
-                obj.angle_ind(j, :) = parse_matrix(j, 2:3);
-                obj.x_eq(parse_matrix(j, 2)) = 0;
-                obj.x_eq(parse_matrix(j, 3)) = 0;
-                if any(obj.delta_x(parse_matrix(j, 2:3))>1)
-                    error("Sin/Cosine range can't be superior to 1")
+            for j=1:size(angular_indices,1) % sine, cosine
+                if angular_indices(j,1) == angular_indices(j,2)
+                    error("Sin and cosine can't have the same index")
                 end
-                if parse_matrix(j,2) == parse_matrix(j,3)
-                    error("Sin and cosine can't have the same indice")
+				if abs(obj.x_eq(angular_indices(j,1))^2 + obj.x_eq(angular_indices(j,2))^2 - 1 ) > 0.001
+					error("Sin and cosine should verify trigonometric equality")
+				end
+				% \theta = \sgn(\sin\theta)\arccos(\cos\theta)
+                obj.angle_eq(j, 1) = sign(obj.x_eq(angular_indices(j, 1)))*acos(obj.x_eq(angular_indices(j, 2))); 
+                obj.angle_ind(j, :) = angular_indices(j, 1:2);
+                obj.x_eq(angular_indices(j, 1)) = 0;
+                obj.x_eq(angular_indices(j, 2)) = 0;
+                if any(obj.delta_x(angular_indices(j, 1:2))>1)
+                    error("Sin/Cosine range can't be superior to 1")
                 end
             end
             for k=1:obj.dimension
@@ -401,7 +404,7 @@ classdef SOStab < handle
             %   ind1, ind2: indices of the variables to be plotted.
             %       If an angle is plotted, the variable should be an array
             %       of three elements. The first two indicate the indices
-            %       of respectively sin(angle) and (1-cos(angle))/2, the
+            %       of respectively sin(angle) and cos(angle), the
             %       last one indicates the indice of the plotted angle in
             %       the angle array
             %   approximation: 'i' or 'inner' for inner approximation of
@@ -419,10 +422,46 @@ classdef SOStab < handle
 			end
 			if nargin < 5
 				plot_target = 0;
+			end            
+            angle1 = any(size(ind1) > 1);
+            angle2 = any(size(ind2) > 1);
+			if angle1
+				for j=1:size(obj.angle_ind,1)
+					if ind1(1) == obj.angle_ind(j,1)
+						if ind1(2) == obj.angle_ind(j,2)
+							ind1(3) = j;
+							break;
+						else
+							error("The two indices of ind1 are incompatible")
+						end
+					end
+				end
+				%error("Indices not found")
+			end
+			if angle2
+				for j=1:size(obj.angle_ind,1)
+					if ind2(1) == obj.angle_ind(j,1)
+						if ind2(2) == obj.angle_ind(j,2)
+							ind2(3) = j;
+							break;
+						else
+							error("The two indices of ind2 are incompatible")
+						end
+					end
+				end
+				%error("Indices not found")
 			end
 			if nargin < 7
-                str1 = ['x_{' num2str(ind1) '}'];
-                str2 = ['x_{' num2str(ind2) '}'];
+				if angle1
+					str1 = ['\theta_{' num2str(ind1(3)) '}'];
+				else
+					str1 = ['x_{' num2str(ind1) '}'];
+				end
+				if angle2
+					str2 = ['\theta_{' num2str(ind2(3)) '}'];
+				else
+					str2 = ['x_{' num2str(ind2) '}'];
+				end
             end
             if all(approximation == 'i') || all(approximation == 'inner')
                 curvcoef = obj.vcoef_inner;
@@ -435,9 +474,7 @@ classdef SOStab < handle
                 app_str = 'Outer';
                 border_value = 0.8;
             end
-            
-            angle1 = any(size(ind1) > 1);
-            angle2 = any(size(ind2) > 1);
+
             if angle1
                 if any(size(ind1) > 2)
                     ind1 = reshape(ind1,1,3);
@@ -545,9 +582,45 @@ classdef SOStab < handle
             if nargin < 7
                 mesh_size = [40,40];
             end
+            angle1 = any(size(ind1) > 1);
+            angle2 = any(size(ind2) > 1);
+			if angle1
+				for j=1:size(obj.angle_ind,1)
+					if ind1(1) == obj.angle_ind(j,1)
+						if ind1(2) == obj.angle_ind(j,2)
+							ind1(3) = j;
+							break;
+						else
+							error("The two indices of ind1 are incompatible")
+						end
+					end
+				end
+				%error("Indices not found")
+			end
+			if angle2
+				for j=1:size(obj.angle_ind,1)
+					if ind2(1) == obj.angle_ind(j,1)
+						if ind2(2) == obj.angle_ind(j,2)
+							ind2(3) = j;
+							break;
+						else
+							error("The two indices of ind2 are incompatible")
+						end
+					end
+				end
+				%error("Indices not found")
+			end
 			if nargin < 5
-                str1 = ['x_{' num2str(ind1) '}'];
-                str2 = ['x_{' num2str(ind2) '}'];
+				if angle1
+					str1 = ['\theta_{' num2str(ind1(3)) '}'];
+				else
+					str1 = ['x_{' num2str(ind1) '}'];
+				end
+				if angle2
+					str2 = ['\theta_{' num2str(ind2(3)) '}'];
+				else
+					str2 = ['x_{' num2str(ind2) '}'];
+				end
             end
             if all(approximation == 'i') || all(approximation == 'inner')
                 curwcoef = obj.wcoef_inner;
@@ -555,8 +628,7 @@ classdef SOStab < handle
                 curwcoef = obj.wcoef_outer;
             end
             
-            angle1 =  any(size(ind1) > 1);
-            angle2 =  any(size(ind2) > 1);
+
             if angle1
                 if any(size(ind1) > 2)
                     ind1 = reshape(ind1,1,3);
@@ -643,9 +715,46 @@ classdef SOStab < handle
             if nargin < 8
                 mesh_size = [40,40];
             end
+
+            angle1 = any(size(ind1) > 1);
+            angle2 = any(size(ind2) > 1);
+			if angle1
+				for j=1:size(obj.angle_ind,1)
+					if ind1(1) == obj.angle_ind(j,1)
+						if ind1(2) == obj.angle_ind(j,2)
+							ind1(3) = j;
+							break;
+						else
+							error("The two indices of ind1 are incompatible")
+						end
+					end
+				end
+				%error("Indices not found")
+			end
+			if angle2
+				for j=1:size(obj.angle_ind,1)
+					if ind2(1) == obj.angle_ind(j,1)
+						if ind2(2) == obj.angle_ind(j,2)
+							ind2(3) = j;
+							break;
+						else
+							error("The two indices of ind2 are incompatible")
+						end
+					end
+				end
+				%error("Indices not found")
+			end
 			if nargin < 6
-                str1 = ['x_{' num2str(ind1) '}'];
-                str2 = ['x_{' num2str(ind2) '}'];
+				if angle1
+					str1 = ['\theta_{' num2str(ind1(3)) '}'];
+				else
+					str1 = ['x_{' num2str(ind1) '}'];
+				end
+				if angle2
+					str2 = ['\theta_{' num2str(ind2(3)) '}'];
+				else
+					str2 = ['x_{' num2str(ind2) '}'];
+				end
             end
 
             if all(approximation == 'i') || all(approximation == 'inner')
@@ -653,9 +762,7 @@ classdef SOStab < handle
             else
                 curwcoef = obj.wcoef_outer;
             end
-            
-            angle1 =  any(size(ind1) > 1);
-            angle2 =  any(size(ind2) > 1);
+
             if angle1
                 if any(size(ind1) > 2)
                     ind1 = reshape(ind1,1,3);

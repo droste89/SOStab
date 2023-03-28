@@ -140,6 +140,7 @@ $$    \begin{align*}
         \dot \omega_2 &= -0.5\sin\theta_2 - 0.5\sin(\theta_2-\theta_1) - 0.5 \, \omega_2 + 0.05
     \end{align*}
 $$
+
 Similarly to the pendulum, it can be polynomialized we the change of variable $x= (\sin\theta_1, \cos\theta_1, \sin\theta_2, \cos\theta_2,\omega_1, \omega_2)$. The RoA of the system is calculated by:
 
 ```

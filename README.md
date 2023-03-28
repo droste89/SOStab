@@ -84,7 +84,8 @@ toy.plot_w(1,2, 'o');
 ## Van der Pol
 
 The Van der Pol oscillator is a simple 2 dimensional system:
-$$ \begin{pmatrix} \dot{x}_1 \\ \dot{x}_2 \end{pmatrix} = \begin{pmatrix} -2x_2 \\ 0.8x_1 + 10(x_1^2-0.21)x_2 \end{pmatrix} $$
+
+$$ \begin{pmatrix} \dot{x}_1 \\\\ \dot{x}_2 \end{pmatrix} = \begin{pmatrix} -2x_2 \\\\ 0.8x_1 + 10(x_1^2-0.21)x_2 \end{pmatrix} $$
 
 ```
 vdp = SOStab([0;0],[1.1;1.1]);
@@ -105,10 +106,12 @@ end
 ## Scaled pendulum
 
 The pendulum is a simple example of "polynomialization" of a system.
-$$\dot{\theta} = \sin(2\theta)=2\sin\theta\cos\theta $$
-The system used as input of the toolbox will be $x =(\sin\theta, \cos\theta, \omega) $ (here $\omega=0$ is used for plotting in 2 dimensions), then we have:
 
-$$\dot{x}= \begin{pmatrix}-2\sin\theta\cos^2\theta \\ 2\sin^2\theta\cos\theta \\ 0 \end{pmatrix}$$
+$$\dot{\theta} = \sin(2\theta)=2\sin\theta\cos\theta $$
+
+The system used as input of the toolbox will be $x= (\sin\theta, \cos\theta, \omega)$ (here $\omega=0$ is used for plotting in 2 dimensions), then we have:
+
+$$\dot{x}= \begin{pmatrix}-2\sin\theta\cos^2\theta \\\\ 2\sin^2\theta\cos\theta \\\\ 0 \end{pmatrix}$$
 
 Hence, the dynamic is indeed polynomial in the variables.
 

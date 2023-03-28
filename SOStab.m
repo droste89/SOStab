@@ -33,7 +33,7 @@ classdef SOStab < handle
 	end
     
     methods
-        function obj = SOStab(x_eq, delta_x, angular_indices)
+        function obj = SOStab(x_eq, delta_x, angle_ind)
             %SOSTAB Initialize an object for calculating ROA approximations
             %
             %
@@ -43,7 +43,7 @@ classdef SOStab < handle
             %   dimension of the problem
             %   delta_x: range around the equilibrium defining the admissible set,
             %   must have the same size as x_eq
-            %   angular_indices (optionnal): if the problem involves angles, this 
+            %   angle_ind (optionnal): if the problem involves angles, this 
             %   matrix should contain rows defining indices corresponding to angles:
             %   each row should be of the type [ind1, ind2] where ind1
             %   (resp. ind2) indicates the place of the variables corresponding
@@ -51,26 +51,26 @@ classdef SOStab < handle
             %%%%%
 
             if nargin < 3
-                angular_indices = [];
+                angle_ind = [];
             end
             obj.dimension = max(size(x_eq));
             obj.x_eq = reshape(x_eq, obj.dimension, 1);
             obj.delta_x = reshape(delta_x, obj.dimension, 1);
             obj.x = sdpvar(obj.dimension,1);
             invD = zeros(obj.dimension,1);
-            for j=1:size(angular_indices,1) % sine, cosine
-                if angular_indices(j,1) == angular_indices(j,2)
+            for j=1:size(angle_ind,1) % sine, cosine
+                if angle_ind(j,1) == angle_ind(j,2)
                     error("Sin and cosine can't have the same index")
                 end
-				if abs(obj.x_eq(angular_indices(j,1))^2 + obj.x_eq(angular_indices(j,2))^2 - 1 ) > 0.001
+				if abs(obj.x_eq(angle_ind(j,1))^2 + obj.x_eq(angle_ind(j,2))^2 - 1 ) > 0.001
 					error("Sin and cosine should verify trigonometric equality")
 				end
 				% \theta = \sgn(\sin\theta)\arccos(\cos\theta)
-                obj.angle_eq(j, 1) = sign(obj.x_eq(angular_indices(j, 1)))*acos(obj.x_eq(angular_indices(j, 2))); 
-                obj.angle_ind(j, :) = angular_indices(j, 1:2);
-                obj.x_eq(angular_indices(j, 1)) = 0;
-                obj.x_eq(angular_indices(j, 2)) = 0;
-                if any(obj.delta_x(angular_indices(j, 1:2))>1)
+                obj.angle_eq(j, 1) = sign(obj.x_eq(angle_ind(j, 1)))*acos(obj.x_eq(angle_ind(j, 2))); 
+                obj.angle_ind(j, :) = angle_ind(j, :);
+                obj.x_eq(angle_ind(j, 1)) = 0;
+                obj.x_eq(angle_ind(j, 2)) = 0;
+                if any(obj.delta_x(angle_ind(j, 1:2))>1)
                     error("Sin/Cosine range can't be superior to 1")
                 end
             end

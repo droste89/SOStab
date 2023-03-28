@@ -81,6 +81,49 @@ classdef SOStab < handle
             obj.D = obj.invD ^(-1);
 
         end
+
+        function [mom] = moments(obj, d)
+            %MOMENTS calculates the moment of degree d of the dynamical
+            %system
+            % Integration of the monomiols z_mono on X = [-1,1]^n,
+            % optimized way.
+            z = sdpvar(obj.dimension, 1);
+            z_mono = monolist(z, d);
+            mom = ones(size(z_mono));
+            z_display = sdisplay(z_mono);
+            for k=1:size(z_mono,1)
+                integrand = z_display{k,1};
+                iszero = false;
+                if contains(integrand, ')*') || integrand(end)==')' % search for a monomial of degree 1
+                    mom(k) = 0;
+                    continue
+                end
+                for j=3:2:d
+                    if contains(integrand, ['^' num2str(j)]) % search for odd degree monomials
+                        mom(k) = 0;
+                        iszero = true;
+                        continue
+                    end
+                end
+                if iszero
+                    continue
+                end
+                for j=1:size(z,1) % integration for other situations
+                    iscons = true;
+                    for deg = 2:2:d
+                       if contains(integrand, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
+                           mom(k) = mom(k)*2/(deg+1);
+                           iscons = false;
+                           continue
+                       end
+                    end
+                    if iscons % integration of constant over [-1,1]
+                        mom(k) = mom(k)*2;
+                    end
+                end
+                        
+            end
+        end
         
         function [sol, vc, wc] = SoS_out(obj, d, T, epsilon, A)
             %SOS_OUT solves the outer approximation problem
@@ -109,43 +152,8 @@ classdef SOStab < handle
             end
             [w, wc] = polynomial(z, d);
             [v, vc] = polynomial([s; z], d);
-            
-            zz = monolist(z,d);
-            % Integration of zz on X, optimized way:
-            y = ones(size(zz));
-            fz = sdisplay(zz);
-            for k=1:size(zz,1)
-                integrand = fz{k,1};
-                iszero = false;
-                if contains(integrand, ')*') || integrand(end)==')' % search for a monomial of degree 1
-                    y(k) = 0;
-                    continue
-                end
-                for j=3:2:d
-                    if contains(integrand, ['^' num2str(j)]) % search for odd degree monomials
-                        y(k) = 0;
-                        iszero = true;
-                        continue
-                    end
-                end
-                if iszero
-                    continue
-                end
-                for j=1:size(z,1) % integration for other situations
-                    iscons = true;
-                    for deg = 2:2:d
-                       if contains(integrand, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
-                           y(k) = y(k)*2/(deg+1);
-                           iscons = false;
-                           continue
-                       end
-                    end
-                    if iscons % integration of constant over [-1,1]
-                        y(k) = y(k)*2;
-                    end
-                end
-                        
-            end
+
+            y = obj.moments(d);
             objectif = wc'* y;
             var = [wc; vc];
             % Constraints
@@ -251,42 +259,8 @@ classdef SOStab < handle
             [w, wc] = polynomial(z, d);
             [v, vc] = polynomial([s; z], d);
             
-            zz = monolist(z,d);
-            % Integration of zz on X, optimized way:
-            y = ones(size(zz));
-            fz = sdisplay(zz);
-            for k=1:size(zz,1)
-                integrand = fz{k,1};
-                iszero = false;
-                if contains(integrand, ')*') || integrand(end)==')' % search for a monomial of degree 1
-                    y(k) = 0;
-                    continue
-                end
-                for j=3:2:d
-                    if contains(integrand, ['^' num2str(j)]) % search for odd degree monomials
-                        y(k) = 0;
-                        iszero = true;
-                        continue
-                    end
-                end
-                if iszero
-                    continue
-                end
-                for j=1:size(z,1) % integration for other situations
-                    iscons = true;
-                    for deg = 2:2:d
-                       if contains(integrand, [num2str(j) ')^' num2str(deg)]) % integration of even degree monomials
-                           y(k) = y(k)*2/(deg+1);
-                           iscons = false;
-                           continue
-                       end
-                    end
-                    if iscons % integration of constant over [-1,1]
-                        y(k) = y(k)*2;
-                    end
-                end
-                        
-            end
+
+            y = obj.moments(d);
             objectif = wc'* y;
             var = [wc; vc];
             con = [];

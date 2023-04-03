@@ -1,6 +1,7 @@
 # SOStab
+## A sum-of-squares Matlab toolbox for stability analysis. 
 
-A sum-of-squares Matlab toolbox for stability analysis. The goal of the toolbox is to facilitate the use of SoS programming for calculating an approximation of the region of attraction (RoA) of a dynamical system. The only input needed are an equilibrium point, the admissible set and the dynamics of the system.
+The goal of the toolbox is to facilitate the use of SoS programming for calculating an approximation of the region of attraction (RoA) of a dynamical system. The only input needed are an equilibrium point, the admissible set and the dynamics of the system.
 
 SOStab requires [YALMIP](yalmip.github.io/), as well as a semidefinite solver. [Mosek](mosek.com/) is used by default, but it can be replaced by any other solver, provided they are installed and interfaced through YALMIP. 
 
@@ -155,7 +156,7 @@ pow_sys.dynamics = [pow_sys.x(5)*pow_sys.x(2);-pow_sys.x(5)*pow_sys.x(1);...
     pow_sys.x(6)*pow_sys.x(4);-pow_sys.x(6)*pow_sys.x(3);
     -pow_sys.x(1)-0.5*(pow_sys.x(1)*pow_sys.x(4)-pow_sys.x(2)*pow_sys.x(3))-0.4*pow_sys.x(5);
     -0.5*pow_sys.x(3)+0.5*(pow_sys.x(1)*pow_sys.x(4)-pow_sys.x(2)*pow_sys.x(3))-0.5*pow_sys.x(6)+0.05];
-pow_sys.SoS_out(10,8,0.1);
+pow_sys.SoS_out(6,8,0.1);
 vopow = value(pow_sys.vcoef_outer);
 wopow = value(pow_sys.wcoef_outer);
 pow_sys.plot_roa([1,2],[3,4],'o','1',"\theta_1","\theta_2");

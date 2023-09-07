@@ -164,7 +164,7 @@ pow_sys.SoS_out(6,8,0.1);
 vopow = value(pow_sys.vcoef_outer);
 wopow = value(pow_sys.wcoef_outer);
 wopow(1) = wopow(1)-1;
-if wopow'wopow > 0.00001
+if wopow'*wopow > 0.00001
     pow_sys.plot_roa([1,2],[3,4],'o','1',"\theta_1","\theta_2");
 else
     disp("w not relevant")

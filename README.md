@@ -101,6 +101,8 @@ wivdp = value(vdp.wcoef_inner);
 wivdp(1) = wivdp(1)-1;
 if wivdp'*wivdp>0.00001
     vdp.plot_roa(1,2,'inner',0,"x_1","x_2");
+else
+    disp("w not relevant")
 end
 ```
 
@@ -124,11 +126,13 @@ vopen = value(pen.vcoef_outer);
 wopen = value(pen.wcoef_outer);
 pen.plot_roa([1,2,1],3,'outer',1,"\theta","\omega");
 pen.SoS_in(6,40,0.5);
-if double(pen.wcoef_outer(abs(double(pen.wcoef_outer)) > 0.00001))
-    vipen = value(pen.vcoef_inner);
-    wipen = value(pen.wcoef_inner);
+vipen = value(pen.vcoef_inner);
+wipen = value(pen.wcoef_inner);
+wipen(1) = wipen(1)-1;
+if wipen'*wipen > 0.00001
     pen.plot_roa([1,2],3,'inner',0,"\theta","\omega");
-else print("w not relevant")
+else
+    disp("w not relevant")
 end
 ```
 
@@ -159,7 +163,11 @@ pow_sys.dynamics = [pow_sys.x(5)*pow_sys.x(2);-pow_sys.x(5)*pow_sys.x(1);...
 pow_sys.SoS_out(6,8,0.1);
 vopow = value(pow_sys.vcoef_outer);
 wopow = value(pow_sys.wcoef_outer);
-pow_sys.plot_roa([1,2],[3,4],'o','1',"\theta_1","\theta_2");
+wopow(1) = wopow(1)-1;
+if wopow'wopow > 0.00001
+    pow_sys.plot_roa([1,2],[3,4],'o','1',"\theta_1","\theta_2");
+else
+    disp("w not relevant")
 ```
 
 # Properties and methods of the class

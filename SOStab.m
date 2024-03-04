@@ -278,11 +278,8 @@ classdef SOStab < handle
             end
             con = [con, sos(replace(v, s, 1) + g * q1 - hs)];
 
-            % v(1,.) <= 0 on K = {g(z) >=0}
-            %[q1, qc1] = polynomial(z, d-2);
-            %var = [var; qc1];
-            %con = [con, sos(q1)];
-            %con = [con, sos(-replace(v, s, 1) - g * q1)];
+            % Force w to be 0 at the equilibrium
+            con = [con, wc(1) <= 0];
             
             % w >= v(0 ,.) + 1 on X
             hs = 0;

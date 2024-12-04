@@ -729,9 +729,9 @@ classdef SOStab < handle
             end
 
             if all(approximation == 'i') || all(approximation == 'inner')
-                curwcoef = obj.wcoef_inner;
+                curvcoef = obj.vcoef_inner;
             else
-                curwcoef = obj.wcoef_outer;
+                curvcoef = obj.vcoef_outer;
             end
 
             if angle1
